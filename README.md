@@ -43,3 +43,8 @@ to make it easier to filter for the concurrency jetty exception
 ```
 mvn compile exec:java -Dexec.mainClass="org.example.Main" 2>&1 | grep ConcurrentModificationException -A 15 -B 2
 ```
+
+
+## Note
+
+- for some reason jnr-unixsocket (jnr-ingress.sock) connector does not work (curl will time out)
