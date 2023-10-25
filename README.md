@@ -18,6 +18,11 @@ hammer uds endpoint to raise concurrency exception
 
 ```
 seq 1 15000 | xargs -P1500 -I{} curl --unix-socket ./junix-ingress.sock http://localhost/process
+
+or use vegeta to really apply load: https://github.com/tsenart/vegeta
+
+echo "GET http://localhost/process" | vegeta attack -unix-socket ./junix-ingress.sock -duration 30s -workers 15000 -rate 0 -max-workers 15000
+
 ```
 
 look for the following
@@ -47,4 +52,4 @@ mvn compile exec:java -Dexec.mainClass="org.example.Main" 2>&1 | grep Concurrent
 
 ## Note
 
-- for some reason jnr-unixsocket (jnr-ingress.sock) connector does not work (curl will time out)
+- the jnr-unixsocket (jnr-ingress.sock) connector will not work on m2 macs
