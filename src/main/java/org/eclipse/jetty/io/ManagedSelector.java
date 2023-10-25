@@ -523,7 +523,6 @@ public class ManagedSelector extends ContainerLifeCycle implements Dumpable
   private class SelectorProducer implements ExecutionStrategy.Producer
   {
     private Set<SelectionKey> _keys = Collections.emptySet();
-    private Iterator<SelectionKey> _cursor = Collections.emptyIterator();
 
     @Override
     public Runnable produce()
@@ -621,7 +620,6 @@ public class ManagedSelector extends ContainerLifeCycle implements Dumpable
             int selectedKeys = _keys.size();
             if (selectedKeys > 0)
               _keyStats.record(selectedKeys);
-            _cursor = selectedKeys > 0 ? _keys.iterator() : Collections.emptyIterator();
             if (LOG.isDebugEnabled())
               LOG.debug("Selector {} processing {} keys, {} updates", selector, selectedKeys, updates);
 
@@ -652,11 +650,17 @@ public class ManagedSelector extends ContainerLifeCycle implements Dumpable
 
     private Runnable processSelected()
     {
-      while (_cursor.hasNext())
+      if (_keys.isEmpty())
+        return null;
+
+      Iterator<SelectionKey> cursor = _keys.iterator();
+      while (cursor.hasNext())
       {
-        SelectionKey key = _cursor.next();
+        SelectionKey key = cursor.next();
         Object attachment = key.attachment();
         SelectableChannel channel = key.channel();
+        cursor.remove();
+
         if (key.isValid())
         {
           if (LOG.isDebugEnabled())
