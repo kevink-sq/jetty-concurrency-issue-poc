@@ -111,6 +111,14 @@ final class AFSelector extends AbstractSelector {
         throw new ClosedSelectorException();
       }
       pfd = pollFd = initPollFd(pollFd);
+      synchronized (cancelledKeysSet){
+        for (var key : cancelledKeysSet){
+          selectedKeysSet.remove(key);
+          deregister((AFSelectionKey) key);
+          pollFd = null;
+        }
+        cancelledKeysSet.clear();
+      }
       selectedKeysSet.clear();
     }
     int num;
@@ -294,8 +302,6 @@ final class AFSelector extends AbstractSelector {
 
   synchronized void remove(AFSelectionKey key) {
     cancelledKeysSet.add(key);
-    deregister(key);
-    pollFd = null;
   }
 
   private void deregister(AFSelectionKey key) {

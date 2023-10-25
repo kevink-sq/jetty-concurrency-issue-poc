@@ -80,7 +80,6 @@ final class AFSelectionKey extends SelectionKey {
 
   @Override
   public void cancel() {
-    sel.remove(this);
     cancelNoRemove();
   }
 
@@ -88,7 +87,7 @@ final class AFSelectionKey extends SelectionKey {
     if (!cancelled.compareAndSet(false, true) || !chann.isOpen()) {
       return;
     }
-
+    sel.remove(this);
     cancel1();
   }
 
