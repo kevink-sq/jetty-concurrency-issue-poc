@@ -35,9 +35,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
-
 /**
  * junixsocket-based {@link SocketImpl}.
  *
@@ -128,6 +125,7 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
           }
           try {
             NativeUnixSocket.shutdown(tmpFd, SHUT_RD_WR);
+            NativeUnixSocket.close(tmpFd);
           } catch (Exception e) {
             // ignore
           }
@@ -156,7 +154,7 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
    * @param addressFamily The address family.
    * @param fdObj The socket's {@link FileDescriptor}.
    */
-  protected AFSocketImpl(AFAddressFamily<@NonNull A> addressFamily, FileDescriptor fdObj) {
+  protected AFSocketImpl(AFAddressFamily<A> addressFamily, FileDescriptor fdObj) {
     super();
     this.addressFamily = addressFamily;
     this.address = InetAddress.getLoopbackAddress();
@@ -269,6 +267,7 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
         if (!isBound() || isClosed()) {
           try {
             NativeUnixSocket.shutdown(si.fd, SHUT_RD_WR);
+            NativeUnixSocket.close(si.fd);
           } catch (Exception e) {
             // ignore
           }
@@ -530,6 +529,7 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
       FileDescriptor fdesc = core.validFd();
       if (fdesc != null) {
         NativeUnixSocket.shutdown(fdesc, SHUT_RD);
+        NativeUnixSocket.close(fdesc);
       }
 
       closedInputStream = true;
@@ -630,6 +630,7 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
       FileDescriptor fdesc = core.validFd();
       if (fdesc != null) {
         NativeUnixSocket.shutdown(fdesc, SHUT_WR);
+        NativeUnixSocket.close(fdesc);
       }
       closedOutputStream = true;
       checkClose();
@@ -861,6 +862,7 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
     FileDescriptor fdesc = core.validFd();
     if (fdesc != null) {
       NativeUnixSocket.shutdown(fdesc, SHUT_RD_WR);
+      NativeUnixSocket.close(fdesc);
       shutdownState = 0;
     }
   }
@@ -870,9 +872,11 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
     FileDescriptor fdesc = core.validFd();
     if (fdesc != null) {
       NativeUnixSocket.shutdown(fdesc, SHUT_RD);
+      NativeUnixSocket.close(fdesc);
       shutdownState |= 1 << (SHUT_RD);
       if (shutdownState == SHUTDOWN_RD_WR) {
         NativeUnixSocket.shutdown(fdesc, SHUT_RD_WR);
+        NativeUnixSocket.close(fdesc);
         shutdownState = 0;
       }
     }
@@ -883,9 +887,11 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
     FileDescriptor fdesc = core.validFd();
     if (fdesc != null) {
       NativeUnixSocket.shutdown(fdesc, SHUT_WR);
+      NativeUnixSocket.close(fdesc);
       shutdownState |= 1 << (SHUT_RD_WR);
       if (shutdownState == SHUTDOWN_RD_WR) {
         NativeUnixSocket.shutdown(fdesc, SHUT_RD_WR);
+        NativeUnixSocket.close(fdesc);
         shutdownState = 0;
       }
     }
@@ -935,11 +941,11 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
     }
   }
 
-  final @Nullable A getLocalSocketAddress() {
+  final A getLocalSocketAddress() {
     return AFSocketAddress.getSocketAddress(getFileDescriptor(), false, localport, addressFamily);
   }
 
-  final @Nullable A getRemoteSocketAddress() {
+  final A getRemoteSocketAddress() {
     return AFSocketAddress.getSocketAddress(getFileDescriptor(), true, port, addressFamily);
   }
 
@@ -953,7 +959,6 @@ public abstract class AFSocketImpl<A extends AFSocketAddress> extends SocketImpl
 
   @Override
   protected final InetAddress getInetAddress() {
-    @Nullable
     A rsa = getRemoteSocketAddress();
     if (rsa == null) {
       return InetAddress.getLoopbackAddress();
