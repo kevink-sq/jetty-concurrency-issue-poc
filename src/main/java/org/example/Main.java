@@ -35,9 +35,9 @@ public class Main {
 
     Server server = new Server();
     server.setConnectors(new Connector[] {
-        junixConnector(server, "junix-ingress.sock"),
-        jnrConnector(server, "jnr-ingress.sock"),
-        nativeConnector(server, "native-ingress.sock")
+        junixConnector(server, "/tmp/junix-ingress.sock"),
+        jnrConnector(server, "/tmp/jnr-ingress.sock"),
+        nativeConnector(server, "/tmp/native-ingress.sock")
         });
     ServletHandler handler = new ServletHandler();
     handler.addServletWithMapping(Process.class, "/process");
